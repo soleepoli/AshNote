@@ -1,11 +1,19 @@
 "use client";
 import { useEmotionStore } from "@/store/useEmotionStore";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import EmoBurn from "./components/animations/EmoBurn";
 
 export default function Home() {
   const { emotion, setEmotion, clearEmotion } = useEmotionStore();
   const [input, setInput] = useState("");
+  const [emotions, setEmotions] = useState([]);
 
+    useEffect(() => {
+      fetch("/api/emotion")
+        .then((res) => res.json())
+        .then(setEmotions);
+    }, []);
+    
   const handleSubmit = async () => {
     if (!input) return;
     setEmotion(input);
@@ -15,6 +23,10 @@ export default function Home() {
       body: JSON.stringify({ emotion: input }),
     });
     setInput("");
+
+    fetch("/api/emotion")
+      .then((res) => res.json())
+      .then(setEmotions);
   };
 
   return (
@@ -34,6 +46,7 @@ export default function Home() {
       >
         감정 저장하기
       </button>
+      <EmoBurn />
 
       {emotion && (
         <>
@@ -46,6 +59,21 @@ export default function Home() {
           </button>
         </>
       )}
+
+      <section className="mt-6">
+        <h2 className="font-semibold mb-2">저장된 감정 목록</h2>
+        <ul className="space-y-1">
+          {emotions.length > 0 ? (
+            emotions.map((e: any) => (
+              <li key={e.id} className="text-gray-700">
+                {e.emotion}
+              </li>
+            ))
+          ) : (
+            <li className="text-gray-400">아직 저장된 감정이 없습니다.</li>
+          )}
+        </ul>
+      </section>
     </main>
   );
 }
